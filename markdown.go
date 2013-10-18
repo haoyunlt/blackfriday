@@ -92,28 +92,12 @@ var blockTags = map[string]bool{
 	"div":        true,
 	"ins":        true,
 	"pre":        true,
-	"form":       true,
-	"math":       true,
 	"table":      true,
-	"iframe":     true,
-	"script":     true,
-	"fieldset":   true,
-	"noscript":   true,
 	"blockquote": true,
+}
 
-	// HTML5
-	"video":      true,
-	"aside":      true,
-	"canvas":     true,
-	"figure":     true,
-	"footer":     true,
-	"header":     true,
-	"hgroup":     true,
-	"output":     true,
-	"article":    true,
-	"section":    true,
-	"progress":   true,
-	"figcaption": true,
+func SetDefaultBlockTags(tag string, permit bool) {
+	blockTags[tag] = permit
 }
 
 // Renderer is the rendering interface.
@@ -185,6 +169,8 @@ type parser struct {
 	// presence. If a ref is also a footnote, it's stored both in refs and here
 	// in notes. Slice is nil if footnotes not enabled.
 	notes []*reference
+
+	blockTags map[string]bool
 }
 
 //
@@ -252,7 +238,7 @@ func MarkdownCommon(input []byte) []byte {
 //
 // To use the supplied Html or LaTeX renderers, see HtmlRenderer and
 // LatexRenderer, respectively.
-func Markdown(input []byte, renderer Renderer, extensions int) []byte {
+func Markdown(input []byte, renderer Renderer, extensions int, args ...interface{}) []byte {
 	// no point in parsing if we can't render
 	if renderer == nil {
 		return nil
@@ -285,6 +271,20 @@ func Markdown(input []byte, renderer Renderer, extensions int) []byte {
 
 	if extensions&EXTENSION_FOOTNOTES != 0 {
 		p.notes = make([]*reference, 0)
+	}
+
+	p.blockTags = make(map[string]bool, len(blockTags))
+
+	for tag, value := range blockTags {
+		p.blockTags[tag] = value
+	}
+
+	if len(args) > 0 {
+		if maps, ok := args[0].(map[string]bool); ok {
+			for t, v := range maps {
+				p.blockTags[t] = v
+			}
+		}
 	}
 
 	first := firstPass(p, input)
