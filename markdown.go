@@ -92,7 +92,10 @@ var blockTags = map[string]bool{
 	"div":        true,
 	"ins":        true,
 	"pre":        true,
+	"code":       true,
 	"table":      true,
+	"tr":         true,
+	"td":         true,
 	"blockquote": true,
 }
 
